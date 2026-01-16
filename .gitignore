@@ -36,9 +36,6 @@ target/
 dist/
 node_modules/
 
-# HTML reports
-htmlReport/
-
 # Backup files
 *.backup
 *.bak

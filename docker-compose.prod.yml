@@ -68,9 +68,7 @@ services:
 
   # Frontend Production Service
   frontend:
-    build:
-      context: ./deal-pipeline-ui
-    image: deal-pipeline-frontend:local
+    image: ankitrautalways/deal-pipeline-frontend:latest
     restart: always
     ports:
       - "80:80"
@@ -132,8 +130,6 @@ volumes:
 networks:
   deal-pipeline-network:
     driver: bridge
-    driver_opts:
-      com.docker.network.bridge.name: deal-pipeline-br
     ipam:
       config:
         - subnet: 172.21.0.0/16
