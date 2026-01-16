@@ -1,0 +1,59 @@
+.no-notes {
+  text-align: center;
+  color: #666;
+  margin: 20px 0;
+}
+
+.note {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+
+  .note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    strong {
+      color: #333;
+    }
+
+    span {
+      color: #666;
+      font-size: 0.875rem;
+    }
+
+    button {
+      margin-left: 8px;
+    }
+  }
+
+  .note-text {
+    margin: 0;
+    white-space: pre-wrap;
+    line-height: 1.4;
+    color: #444;
+  }
+}
+
+.divider {
+  margin: 20px 0;
+}
+
+.add-note-section {
+  margin-top: 20px;
+
+  .full-width {
+    width: 100%;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    justify-content: flex-end;
+  }
+}

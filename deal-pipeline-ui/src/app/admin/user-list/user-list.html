@@ -1,0 +1,157 @@
+<div class="user-management-container">
+  <div class="header-section">
+    <h1>Users</h1>
+    <button
+      mat-raised-button
+      color="primary"
+      routerLink="/admin/users/create"
+      class="create-btn">
+      <mat-icon>add</mat-icon>
+      Create User
+    </button>
+  </div>
+
+  <!-- Enhanced Search Section -->
+  <div class="search-section">
+    <div class="search-header">
+      <mat-icon class="search-icon">search</mat-icon>
+      <h2>Search Users</h2>
+    </div>
+    
+    <div class="search-controls">
+      <div class="search-input-group">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search by {{ searchType }}</mat-label>
+          <input matInput 
+                 [(ngModel)]="searchTerm" 
+                 (keyup)="onSearch()"
+                 placeholder="Enter {{ searchType }}...">
+          <mat-icon matPrefix class="input-icon">search</mat-icon>
+          <mat-icon matSuffix 
+                   class="clear-icon" 
+                   *ngIf="searchTerm"
+                   (click)="clearSearch()">clear</mat-icon>
+        </mat-form-field>
+        
+        <mat-select [(ngModel)]="searchType" (selectionChange)="clearSearch()" class="search-type">
+          <mat-option value="username">
+            <mat-icon>person</mat-icon>
+            Username
+          </mat-option>
+          <mat-option value="email">
+            <mat-icon>email</mat-icon>
+            Email
+          </mat-option>
+        </mat-select>
+      </div>
+      
+      <div class="search-actions">
+        <button mat-button 
+                color="accent" 
+                (click)="clearSearch()"
+                class="clear-search-btn"
+                matTooltip="Clear search">
+          <mat-icon>refresh</mat-icon>
+          Clear
+        </button>
+      </div>
+    </div>
+    
+    <!-- Search Results Summary -->
+    <div class="search-summary" *ngIf="searchTerm">
+      <span class="results-count">
+        Found {{ filteredUsers.length }} user{{ filteredUsers.length !== 1 ? 's' : '' }}
+        {{ searchTerm ? `matching "${searchTerm}"` : '' }}
+      </span>
+    </div>
+  </div>
+
+  <div class="users-grid" *ngIf="isLoaded && filteredUsers.length > 0">
+    <mat-card class="user-card" *ngFor="let user of filteredUsers">
+      <div class="card-header">
+        <div class="user-info">
+          <div class="user-avatar">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div class="user-details">
+            <h3>{{ user.username }}</h3>
+            <p class="email">{{ user.email || 'No email' }}</p>
+          </div>
+        </div>
+        <div class="role-badge" [class.admin]="user.role === 'ADMIN'" [class.user]="user.role === 'USER'">
+          {{ user.role }}
+        </div>
+      </div>
+
+      <div class="card-content">
+        <div class="status-section">
+          <span class="status-label">Status:</span>
+          <span 
+            class="status-badge" 
+            [class.active]="user.active"
+            [class.inactive]="!user.active">
+            <mat-icon class="status-icon">{{ user.active ? 'check_circle' : 'cancel' }}</mat-icon>
+            {{ user.active ? 'ACTIVE' : 'INACTIVE' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button
+          mat-button
+          color="primary"
+          [disabled]="user.role !== 'USER'"
+          (click)="makeAdmin(user.username)"
+          matTooltip="Promote to admin"
+          matTooltipPosition="above">
+          <mat-icon>upgrade</mat-icon>
+          Make Admin
+        </button>
+
+        <button
+          mat-button
+          [color]="user.active ? 'warn' : 'primary'"
+          [disabled]="user.role === 'ADMIN'"
+          (click)="updateStatus(user.username, !user.active)"
+          [matTooltip]="user.role === 'ADMIN' ? 'Admin users cannot be deactivated' : (user.active ? 'Deactivate user' : 'Activate user')"
+          matTooltipPosition="above">
+          <mat-icon>{{ user.active ? 'person_off' : 'person_add' }}</mat-icon>
+          {{ user.active ? 'Deactivate' : 'Activate' }}
+        </button>
+
+        <button
+          mat-button
+          color="warn"
+          [disabled]="user.role === 'ADMIN'"
+          (click)="deleteUser(user.username, user.role)"
+          matTooltip="Delete user"
+          matTooltipPosition="above">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </div>
+    </mat-card>
+  </div>
+
+  <div class="empty-state" *ngIf="isLoaded && filteredUsers.length === 0">
+    <mat-icon class="empty-icon">search_off</mat-icon>
+    <h3>{{ searchTerm ? 'No Users Found' : 'No Users Found' }}</h3>
+    <p>{{ searchTerm ? 'Try adjusting your search terms.' : 'Get started by creating your first user.' }}</p>
+    <button
+      *ngIf="!searchTerm"
+      mat-raised-button
+      color="primary"
+      routerLink="/admin/users/create">
+      <mat-icon>add</mat-icon>
+      Create First User
+    </button>
+    <button
+      *ngIf="searchTerm"
+      mat-raised-button
+      color="accent"
+      (click)="clearSearch()">
+      <mat-icon>clear</mat-icon>
+      Clear Search
+    </button>
+  </div>
+</div>

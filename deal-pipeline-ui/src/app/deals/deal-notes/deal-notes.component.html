@@ -1,0 +1,54 @@
+<h2 mat-dialog-title>Notes</h2>
+
+<mat-dialog-content>
+  <div *ngIf="!deal.notes || deal.notes.length === 0" class="no-notes">
+    <p>No notes yet. Add the first note below.</p>
+  </div>
+
+  <div *ngFor="let note of deal.notes" class="note">
+    <div class="note-header">
+      <strong>{{ note.userId }}</strong>
+      <span>{{ note.createdAt | date:'short' }}</span>
+      
+      <button
+        *ngIf="canDelete(note)"
+        mat-icon-button
+        color="warn"
+        (click)="deleteNote(note.noteId)"
+        matTooltip="Delete note">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+
+    <p class="note-text">{{ note.note }}</p>
+  </div>
+
+  <mat-divider *ngIf="deal.notes && deal.notes.length > 0" class="divider"></mat-divider>
+
+  <div class="add-note-section">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Add Note</mat-label>
+      <textarea
+        matInput
+        rows="3"
+        [(ngModel)]="newNote"
+        placeholder="Enter your note here...">
+      </textarea>
+    </mat-form-field>
+
+    <div class="actions">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="addNote()"
+        [disabled]="!newNote.trim()">
+        Add Note
+      </button>
+      <button
+        mat-button
+        (click)="closeDialog()">
+        Close
+      </button>
+    </div>
+  </div>
+</mat-dialog-content>

@@ -1,0 +1,180 @@
+.create-user-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.form-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  max-width: 500px;
+  width: 100%;
+  backdrop-filter: blur(10px);
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 32px;
+  
+  .header-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #667eea;
+    margin-bottom: 16px;
+  }
+  
+  h1 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 16px;
+    color: #666;
+  }
+}
+
+.user-form {
+  .form-row {
+    margin-bottom: 24px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .full-width {
+    width: 100%;
+    
+    ::ng-deep .mat-form-field-outline {
+      border-radius: 8px;
+    }
+    
+    ::ng-deep .mat-form-field-flex {
+      padding: 0 16px;
+    }
+    
+    ::ng-deep .mat-form-field-infix {
+      padding: 12px 0;
+    }
+    
+    ::ng-deep .mat-form-field-label {
+      font-weight: 500;
+    }
+    
+    ::ng-deep .mat-icon {
+      color: #667eea;
+    }
+  }
+  
+  .role-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+  
+  .submit-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-weight: 500;
+    border-radius: 8px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+  
+  .cancel-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-weight: 500;
+    border-radius: 8px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .create-user-container {
+    padding: 16px;
+  }
+  
+  .form-card {
+    padding: 24px;
+    margin: 16px;
+  }
+  
+  .form-header {
+    margin-bottom: 24px;
+    
+    .header-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 12px;
+    }
+    
+    h1 {
+      font-size: 24px;
+    }
+    
+    p {
+      font-size: 14px;
+    }
+  }
+  
+  .user-form {
+    .form-row {
+      margin-bottom: 20px;
+    }
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    margin-top: 24px;
+    
+    .submit-btn,
+    .cancel-btn {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,54 @@
+<mat-toolbar color="primary" *ngIf="showNavbar" class="enhanced-navbar">
+  <!-- Left Section: Logo -->
+  <div class="navbar-left">
+    <div class="navbar-logo">
+      <div class="logo-icon">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <span class="logo-text">Deal Pipeline</span>
+    </div>
+  </div>
+
+  <!-- Center Section: Navigation -->
+  <div class="navbar-center">
+    <div class="nav-links">
+      <!-- Deals (Everyone) -->
+      <button mat-button routerLink="/deals" class="nav-button">
+        <mat-icon>business_center</mat-icon>
+        <span>Deals</span>
+      </button>
+
+      <!-- ADMIN ONLY -->
+      <button
+        mat-button
+        *ngIf="authService.isAdmin()"
+        routerLink="/admin/users"
+        class="nav-button">
+        <mat-icon>people</mat-icon>
+        <span>User Management</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Right Section: User Info & Actions -->
+  <div class="navbar-right">
+    <div class="user-section">
+      <!-- Role Badge -->
+      <span *ngIf="isAdmin" class="role-badge admin">
+        <mat-icon>admin_panel_settings</mat-icon>
+        ADMIN
+      </span>
+
+      <!-- Logout Button -->
+      <button mat-button (click)="logout()" class="logout-button">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </button>
+    </div>
+  </div>
+</mat-toolbar>
+
+<!-- Main Content Area -->
+<div class="main-content" [class.with-navbar]="showNavbar" [class.without-navbar]="!showNavbar">
+  <router-outlet></router-outlet>
+</div>
