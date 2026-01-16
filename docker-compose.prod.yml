@@ -30,7 +30,6 @@ services:
   # Backend Production Service
   backend:
     image: ankitrautalways/deal-pipeline-backend:latest
-    container_name: deal-pipeline-backend-prod
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: prod
@@ -72,7 +71,6 @@ services:
     build:
       context: ./deal-pipeline-ui
     image: deal-pipeline-frontend:local
-    container_name: deal-pipeline-frontend-prod
     restart: always
     ports:
       - "80:80"
@@ -87,15 +85,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.25'
-        reservations:
-          memory: 128M
-          cpus: '0.1'
-      replicas: 2
 
   # Reverse Proxy (Optional for SSL termination)
   nginx-proxy:

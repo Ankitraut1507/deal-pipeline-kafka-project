@@ -13,7 +13,7 @@ RUN npm ci
 COPY . .
 
 # Build the Angular application for production
-RUN npm run build
+RUN npm run build -- --configuration production
 
 # Production stage
 FROM nginx:alpine
