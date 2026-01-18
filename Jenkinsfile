@@ -71,11 +71,11 @@ pipeline {
                         echo "admin" > secrets/mongo_root_username.txt
                         echo "password123" > secrets/mongo_root_password.txt
                         echo "password123" > secrets/mongo_app_password.txt
-                        export CORS_ALLOWED_ORIGINS="http://${EC2_HOST}"
+                        export CORS_ALLOWED_ORIGINS="http://\$${EC2_HOST}"
                         export MONGO_APP_PASSWORD="password123"
                         docker compose -f docker-compose.prod.yml down --remove-orphans || true
                         sudo fuser -k 80/tcp || true
-                        sudo kill -9 $(sudo lsof -t -i:80) || true
+                        sudo kill -9 \$(sudo lsof -t -i:80) || true
                         sudo systemctl stop nginx || true
                         sudo pkill -f nginx || true
                         docker compose -f docker-compose.prod.yml pull
