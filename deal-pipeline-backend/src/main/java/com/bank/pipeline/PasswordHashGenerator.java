@@ -6,7 +6,7 @@ public class PasswordHashGenerator {
 
     public static void main(String[] args) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String password = "admin123";
+        String password = "password123";
         String hash = encoder.encode(password);
         System.out.println("BCrypt Hash: " + hash);
     }
