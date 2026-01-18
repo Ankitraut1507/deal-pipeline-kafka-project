@@ -4,18 +4,15 @@ pipeline {
     environment {
         AWS_REGION     = 'ap-south-1'
         AWS_ACCOUNT_ID = '851725646494'
-
         ECR_REGISTRY   = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        BACKEND_IMAGE  = "deal-pipeline-backend"
-        FRONTEND_IMAGE = "deal-pipeline-frontend"
-
+        BACKEND_IMAGE  = 'deal-pipeline-backend'
+        FRONTEND_IMAGE = 'deal-pipeline-frontend'
         EC2_USER = 'ec2-user'
         EC2_HOST = '13.201.73.68'
         APP_DIR  = '/home/ec2-user/app'
     }
 
     stages {
-
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
@@ -37,13 +34,7 @@ pipeline {
 
         stage('Login to AWS ECR') {
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'aws-ecr-credentials',
-                        usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
-                ]) {
+                withAWS(credentials: 'aws-ecr-credentials', region: "${AWS_REGION}") {
                     sh '''
                       aws ecr get-login-password --region $AWS_REGION \
                       | docker login --username AWS --password-stdin $ECR_REGISTRY
@@ -51,7 +42,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Push Images to ECR') {
             steps {
@@ -70,7 +60,6 @@ pipeline {
                         cd ${APP_DIR}
                         docker compose pull
                         docker compose up -d
-                        docker compose ps
                       '
                     """
                 }
