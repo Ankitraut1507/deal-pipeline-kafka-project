@@ -29,7 +29,7 @@ services:
 
   # Backend Production Service
   backend:
-    image: ankitrautalways/deal-pipeline-backend:latest
+    image: 851725646494.dkr.ecr.ap-south-1.amazonaws.com/deal-pipeline-backend:latest
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: prod
@@ -68,7 +68,7 @@ services:
 
   # Frontend Production Service
   frontend:
-    image: ankitrautalways/deal-pipeline-frontend:latest
+    image: 851725646494.dkr.ecr.ap-south-1.amazonaws.com/deal-pipeline-frontend:latest
     restart: always
     ports:
       - "80:80"
