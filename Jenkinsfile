@@ -13,7 +13,7 @@ pipeline {
         ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
         EC2_USER = 'ec2-user'
-        EC2_HOST = 'YOUR_EC2_PUBLIC_IP'
+        EC2_HOST = '13.201.73.68'
         APP_DIR = '/home/ec2-user/app'
     }
 
