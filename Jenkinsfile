@@ -75,7 +75,7 @@ pipeline {
                         export MONGO_APP_PASSWORD="password123"
                         docker compose -f docker-compose.prod.yml down --remove-orphans || true
                         sudo fuser -k 80/tcp || true
-                        sudo kill -9 \$(sudo lsof -t -i:80) || true
+                        PID=\$(sudo lsof -t -i:80) && sudo kill -9 \$PID || true
                         sudo systemctl stop nginx || true
                         sudo pkill -f nginx || true
                         docker compose -f docker-compose.prod.yml pull
