@@ -20,7 +20,7 @@ pipeline {
            🚀 EC2 Deployment
            ========================= */
         EC2_USER = 'ec2-user'
-        EC2_HOST = '13.201.73.68'
+        EC2_HOST = '172.31.45.112'
         APP_DIR  = '/home/ec2-user/app'
     }
 
