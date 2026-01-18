@@ -83,7 +83,7 @@ if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
     echo "✅ Backend service is healthy"
 else
     echo "❌ Backend service is not healthy"
-    docker-compose -f "$COMPOSE_FILE" logs backend
+    docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" logs backend
 fi
 
 # Check frontend health
@@ -91,20 +91,20 @@ if curl -f http://localhost:80 > /dev/null 2>&1; then
     echo "✅ Frontend service is healthy"
 else
     echo "❌ Frontend service is not healthy"
-    docker-compose -f "$COMPOSE_FILE" logs frontend
+    docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" logs frontend
 fi
 
 # Check MongoDB connection
-if docker-compose -f "$COMPOSE_FILE" exec -T mongodb mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
+if docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" exec -T mongodb mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
     echo "✅ MongoDB is healthy"
 else
     echo "❌ MongoDB is not healthy"
-    docker-compose -f "$COMPOSE_FILE" logs mongodb
+    docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" logs mongodb
 fi
 
 echo "🎉 Deployment completed successfully!"
 echo "📊 Service status:"
-docker-compose -f "$COMPOSE_FILE" ps
+docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" ps
 
 echo "🌐 Application URLs:"
 echo "   Frontend: http://localhost"

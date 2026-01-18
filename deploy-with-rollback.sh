@@ -24,7 +24,7 @@ execute_on_ec2() {
 rollback() {
     echo "🔄 Rolling back deployment..."
     if execute_on_ec2 "[ -d '$BACKUP_DIR/backup_$TIMESTAMP' ]"; then
-        execute_on_ec2 "cp -r $BACKUP_DIR/backup_$TIMESTAMP/* $APP_DIR/ && cd $APP_DIR && docker compose up -d"
+        execute_on_ec2 "cp -r $BACKUP_DIR/backup_$TIMESTAMP/* $APP_DIR/ && cd $APP_DIR && docker compose -f docker-compose.prod.yml --env-file .env.production up -d"
         echo "✅ Rollback completed successfully"
     else
         echo "❌ No backup found for rollback"
@@ -38,10 +38,10 @@ echo "📦 Creating backup of current deployment..."
 execute_on_ec2 "mkdir -p $BACKUP_DIR && cp -r $APP_DIR $BACKUP_DIR/backup_$TIMESTAMP"
 
 echo "🔄 Pulling latest images from ECR..."
-execute_on_ec2 "cd $APP_DIR && docker compose pull"
+execute_on_ec2 "cd $APP_DIR && docker compose -f docker-compose.prod.yml --env-file .env.production pull"
 
 echo "🚀 Deploying new version..."
-execute_on_ec2 "cd $APP_DIR && docker compose up -d"
+execute_on_ec2 "cd $APP_DIR && docker compose -f docker-compose.prod.yml --env-file .env.production up -d"
 
 echo "⏳ Waiting for services to start..."
 sleep 30

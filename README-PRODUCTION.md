@@ -10,10 +10,20 @@ This guide covers the production deployment of the Deal Pipeline application usi
 - Docker Compose 2.0+
 - SSL certificates (for HTTPS)
 - Production server with sufficient resources
+- Host directory: `/data/mongodb` (for MongoDB persistence)
 
 ## Environment Setup
 
-### 1. Environment Variables
+### 1. Host Directory Setup
+
+Create required host directory on EC2:
+```bash
+# Create MongoDB data directory
+sudo mkdir -p /data/mongodb
+sudo chown -R ec2-user:ec2-user /data/mongodb
+```
+
+### 2. Environment Variables
 
 Copy the example environment file:
 ```bash
@@ -75,13 +85,13 @@ chmod +x deploy.sh
 
 1. **Build and start services:**
 ```bash
-docker-compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 ```
 
-2. **Verify deployment:**
+2. **Pull latest images and deploy:**
 ```bash
-docker-compose -f docker-compose.prod.yml ps
-docker-compose -f docker-compose.prod.yml logs
+docker compose -f docker-compose.prod.yml --env-file .env.production pull
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
 ```
 
 ## Configuration
@@ -128,12 +138,12 @@ All services include health checks:
 
 View logs for all services:
 ```bash
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml logs -f
 ```
 
 View logs for specific service:
 ```bash
-docker-compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml logs -f backend
 ```
 
 ### Metrics
@@ -201,13 +211,13 @@ docker run --rm -v mongodb_data:/data -v $(pwd):/backup alpine tar czf /backup/m
 
 ```bash
 # Check service status
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
 
 # View detailed logs
-docker-compose -f docker-compose.prod.yml logs --tail=100
+docker compose -f docker-compose.prod.yml logs --tail=100
 
 # Execute commands in container
-docker-compose -f docker-compose.prod.yml exec backend bash
+docker compose -f docker-compose.prod.yml exec backend bash
 
 # Inspect volumes
 docker volume ls
@@ -220,7 +230,7 @@ docker volume inspect mongodb_data
 
 1. Update images:
 ```bash
-docker-compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml --env-file .env.production pull
 ```
 
 2. Redeploy:
@@ -232,7 +242,7 @@ docker-compose -f docker-compose.prod.yml pull
 
 Scale services manually:
 ```bash
-docker-compose -f docker-compose.prod.yml up -d --scale backend=3 --scale frontend=3
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --scale backend=3 --scale frontend=3
 ```
 
 ## Environment Variables Reference
