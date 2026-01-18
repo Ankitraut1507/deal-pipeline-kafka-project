@@ -94,8 +94,8 @@ pipeline {
                     sh """
                       ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
                         cd ${APP_DIR}
-                        docker compose pull
-                        docker compose up -d
+                        docker compose -f docker-compose.prod.yml pull
+                        docker compose -f docker-compose.prod.yml up -d
                       '
                     """
                 }
