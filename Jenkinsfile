@@ -8,8 +8,8 @@ pipeline {
         DOCKER_REPO_FRONTEND = 'deal-pipeline-frontend'
 
         // AWS ECR (for later)
-        AWS_REGION = 'ap-south-1'
-        AWS_ACCOUNT_ID = 'YOUR_AWS_ACCOUNT_ID'
+        AWS_REGION = 'ap-south-1b'
+        AWS_ACCOUNT_ID = '851725646494'
         ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
         EC2_USER = 'ec2-user'
