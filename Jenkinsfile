@@ -63,6 +63,16 @@ pipeline {
                       scp -o StrictHostKeyChecking=no docker-compose.prod.yml ${EC2_USER}@${EC2_HOST}:${APP_DIR}/
                       ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
                         cd ${APP_DIR}
+                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                        sudo mkdir -p /data/mongodb
+                        sudo chown -R 1001:1001 /data/mongodb
+                        mkdir -p secrets
+                        echo "THIS_IS_A_VERY_LONG_RANDOM_SECRET_KEY_1234567890" > secrets/jwt_secret.txt
+                        echo "admin" > secrets/mongo_root_username.txt
+                        echo "password123" > secrets/mongo_root_password.txt
+                        echo "password123" > secrets/mongo_app_password.txt
+                        export CORS_ALLOWED_ORIGINS="http://${EC2_HOST}"
+                        export MONGO_APP_PASSWORD="password123"
                         docker compose -f docker-compose.prod.yml pull
                         docker compose -f docker-compose.prod.yml up -d
                       '
