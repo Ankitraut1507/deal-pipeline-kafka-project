@@ -73,6 +73,7 @@ pipeline {
                         echo "password123" > secrets/mongo_app_password.txt
                         export CORS_ALLOWED_ORIGINS="http://${EC2_HOST}"
                         export MONGO_APP_PASSWORD="password123"
+                        docker compose -f docker-compose.prod.yml down --remove-orphans || true
                         docker compose -f docker-compose.prod.yml pull
                         docker compose -f docker-compose.prod.yml up -d
                       '
