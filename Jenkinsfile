@@ -5,11 +5,14 @@ pipeline {
         AWS_REGION     = 'ap-south-1'
         AWS_ACCOUNT_ID = '851725646494'
         ECR_REGISTRY   = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        DOCKER_HUB_REGISTRY = 'docker.io'
+        DOCKER_HUB_NAMESPACE = 'ankitrautalways'
         BACKEND_IMAGE  = 'deal-pipeline-backend'
         FRONTEND_IMAGE = 'deal-pipeline-frontend'
         EC2_USER = 'ec2-user'
         EC2_HOST = '13.201.73.68'
         APP_DIR  = '/home/ec2-user/app'
+        BUILD_TAG = "${env.BUILD_NUMBER ?: 'latest'}"
     }
 
     stages {
@@ -24,11 +27,42 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 dir('deal-pipeline-backend') {
-                    sh "docker build -t ${ECR_REGISTRY}/${BACKEND_IMAGE}:latest ."
+                    sh """
+                        docker build -t ${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${BACKEND_IMAGE}:${BUILD_TAG} .
+                        docker build -t ${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${BACKEND_IMAGE}:latest .
+                        docker build -t ${ECR_REGISTRY}/${BACKEND_IMAGE}:${BUILD_TAG} .
+                        docker build -t ${ECR_REGISTRY}/${BACKEND_IMAGE}:latest .
+                    """
                 }
                 dir('deal-pipeline-ui') {
-                    sh "docker build -t ${ECR_REGISTRY}/${FRONTEND_IMAGE}:latest ."
+                    sh """
+                        docker build -t ${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${FRONTEND_IMAGE}:${BUILD_TAG} .
+                        docker build -t ${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${FRONTEND_IMAGE}:latest .
+                        docker build -t ${ECR_REGISTRY}/${FRONTEND_IMAGE}:${BUILD_TAG} .
+                        docker build -t ${ECR_REGISTRY}/${FRONTEND_IMAGE}:latest .
+                    """
                 }
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASS')]) {
+                    sh """
+                        echo "${DOCKER_HUB_PASS}" | docker login ${DOCKER_HUB_REGISTRY} --username "${DOCKER_HUB_USER}" --password-stdin
+                    """
+                }
+            }
+        }
+
+        stage('Push Images to Docker Hub') {
+            steps {
+                sh """
+                    docker push ${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${BACKEND_IMAGE}:${BUILD_TAG}
+                    docker push ${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${BACKEND_IMAGE}:latest
+                    docker push ${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${FRONTEND_IMAGE}:${BUILD_TAG}
+                    docker push ${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${FRONTEND_IMAGE}:latest
+                """
             }
         }
 
@@ -46,7 +80,9 @@ pipeline {
         stage('Push Images to ECR') {
             steps {
                 sh """
+                  docker push ${ECR_REGISTRY}/${BACKEND_IMAGE}:${BUILD_TAG}
                   docker push ${ECR_REGISTRY}/${BACKEND_IMAGE}:latest
+                  docker push ${ECR_REGISTRY}/${FRONTEND_IMAGE}:${BUILD_TAG}
                   docker push ${ECR_REGISTRY}/${FRONTEND_IMAGE}:latest
                 """
             }
@@ -57,29 +93,9 @@ pipeline {
                 sshagent(['ec2-key']) {
                     sh """
                       ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                        mkdir -p ${APP_DIR}
-                      '
-                      scp -o StrictHostKeyChecking=no docker-compose.yml ${EC2_USER}@${EC2_HOST}:${APP_DIR}/
-                      scp -o StrictHostKeyChecking=no docker-compose.prod.yml ${EC2_USER}@${EC2_HOST}:${APP_DIR}/
-                      ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
                         cd ${APP_DIR}
-                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
-                        sudo mkdir -p /data/mongodb
-                        sudo chown -R 1001:1001 /data/mongodb
-                        mkdir -p secrets
-                        echo "THIS_IS_A_VERY_LONG_RANDOM_SECRET_KEY_1234567890" > secrets/jwt_secret.txt
-                        echo "admin" > secrets/mongo_root_username.txt
-                        echo "password123" > secrets/mongo_root_password.txt
-                        echo "password123" > secrets/mongo_app_password.txt
-                        export CORS_ALLOWED_ORIGINS="http://\$${EC2_HOST}"
-                        export MONGO_APP_PASSWORD="password123"
-                        docker compose -f docker-compose.prod.yml down --remove-orphans || true
-                        sudo fuser -k 80/tcp || true
-                        PID=\$(sudo lsof -t -i:80) && sudo kill -9 \$PID || true
-                        sudo systemctl stop nginx || true
-                        sudo pkill -f nginx || true
-                        docker compose -f docker-compose.prod.yml pull
-                        docker compose -f docker-compose.prod.yml up -d
+                        docker compose pull
+                        docker compose up -d
                       '
                     """
                 }
@@ -92,8 +108,8 @@ pipeline {
                     sh """
                       ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
                         sleep 30
-                        curl -f http://localhost/health || echo "Backend health check through proxy failed"
-                        curl -f http://localhost || echo "Frontend health check through proxy failed"
+                        curl -f http://localhost:8080/actuator/health
+                        curl -f http://localhost
                       '
                     """
                 }
