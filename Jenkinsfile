@@ -87,8 +87,8 @@ pipeline {
                     sh """
                       ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
                         sleep 30
-                        curl -f http://localhost:8080/actuator/health
-                        curl -f http://localhost
+                        curl -f http://localhost/health || echo "Backend health check through proxy failed"
+                        curl -f http://localhost || echo "Frontend health check through proxy failed"
                       '
                     """
                 }

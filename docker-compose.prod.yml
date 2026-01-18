@@ -37,8 +37,8 @@ services:
       JWT_SECRET_FILE: /run/secrets/jwt_secret
       MONGO_APP_PASSWORD_FILE: /run/secrets/mongo_app_password
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     depends_on:
       - mongodb
     networks:
@@ -70,9 +70,8 @@ services:
   frontend:
     image: 851725646494.dkr.ecr.ap-south-1.amazonaws.com/deal-pipeline-frontend:latest
     restart: always
-    ports:
-      - "80:80"
-      - "443:443"
+    expose:
+      - "80"
     depends_on:
       - backend
     networks:
