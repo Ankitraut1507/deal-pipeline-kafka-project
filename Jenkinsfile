@@ -2,25 +2,15 @@ pipeline {
     agent any
 
     environment {
-        /* =========================
-           🐳 Docker Hub
-           ========================= */
-        DOCKER_REGISTRY      = 'ankitrautalways'
-        DOCKER_REPO_BACKEND  = 'deal-pipeline-backend'
-        DOCKER_REPO_FRONTEND = 'deal-pipeline-frontend'
-
-        /* =========================
-           ☁️ AWS ECR (READY – DISABLED)
-           ========================= */
-        AWS_REGION     = 'ap-south-1'        // ✅ REGION, not AZ
+        AWS_REGION     = 'ap-south-1'
         AWS_ACCOUNT_ID = '851725646494'
-        ECR_REGISTRY   = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
-        /* =========================
-           🚀 EC2 Deployment
-           ========================= */
+        ECR_REGISTRY   = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        BACKEND_IMAGE  = "deal-pipeline-backend"
+        FRONTEND_IMAGE = "deal-pipeline-frontend"
+
         EC2_USER = 'ec2-user'
-        EC2_HOST = '172.31.45.112'
+        EC2_HOST = '13.201.73.68'
         APP_DIR  = '/home/ec2-user/app'
     }
 
@@ -28,106 +18,56 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/Ankitraut1507/deal-pipeline-kafka-project.git',
-                    branch: 'main',
+                git branch: 'main',
+                    url: 'https://github.com/Ankitraut1507/deal-pipeline-kafka-project.git',
                     credentialsId: 'github-credentials'
             }
         }
 
-        stage('Build Backend') {
+        stage('Build Docker Images') {
             steps {
                 dir('deal-pipeline-backend') {
-                    sh """
-                        docker build -t ${DOCKER_REGISTRY}/${DOCKER_REPO_BACKEND}:${BUILD_NUMBER} .
-                        docker tag ${DOCKER_REGISTRY}/${DOCKER_REPO_BACKEND}:${BUILD_NUMBER} \
-                                   ${DOCKER_REGISTRY}/${DOCKER_REPO_BACKEND}:latest
-                    """
+                    sh "docker build -t ${ECR_REGISTRY}/${BACKEND_IMAGE}:latest ."
                 }
-            }
-        }
-
-        stage('Build Frontend') {
-            steps {
                 dir('deal-pipeline-ui') {
-                    sh """
-                        docker build -t ${DOCKER_REGISTRY}/${DOCKER_REPO_FRONTEND}:${BUILD_NUMBER} .
-                        docker tag ${DOCKER_REGISTRY}/${DOCKER_REPO_FRONTEND}:${BUILD_NUMBER} \
-                                   ${DOCKER_REGISTRY}/${DOCKER_REPO_FRONTEND}:latest
-                    """
+                    sh "docker build -t ${ECR_REGISTRY}/${FRONTEND_IMAGE}:latest ."
                 }
             }
         }
 
-        stage('Login to Docker Hub') {
+        stage('Login to AWS ECR') {
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'docker-hub-credentials',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )
-                ]) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-ecr-credentials'
+                ]]) {
+                    sh '''
+                      aws ecr get-login-password --region $AWS_REGION \
+                      | docker login --username AWS --password-stdin $ECR_REGISTRY
+                    '''
                 }
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Push Images to ECR') {
             steps {
                 sh """
-                    docker push ${DOCKER_REGISTRY}/${DOCKER_REPO_BACKEND}:latest
-                    docker push ${DOCKER_REGISTRY}/${DOCKER_REPO_FRONTEND}:latest
+                  docker push ${ECR_REGISTRY}/${BACKEND_IMAGE}:latest
+                  docker push ${ECR_REGISTRY}/${FRONTEND_IMAGE}:latest
                 """
             }
         }
 
-        /* =====================================================
-           🚀 AWS ECR (ENABLE LATER – SAFE TO KEEP)
-           =====================================================
-        stage('Login to ECR') {
-            steps {
-                sh '''
-                    aws ecr get-login-password --region $AWS_REGION |
-                    docker login --username AWS --password-stdin $ECR_REGISTRY
-                '''
-            }
-        }
-
-        stage('Tag & Push to ECR') {
-            steps {
-                sh '''
-                    docker tag ${DOCKER_REGISTRY}/${DOCKER_REPO_BACKEND}:latest \
-                        $ECR_REGISTRY/${DOCKER_REPO_BACKEND}:latest
-                    docker tag ${DOCKER_REGISTRY}/${DOCKER_REPO_FRONTEND}:latest \
-                        $ECR_REGISTRY/${DOCKER_REPO_FRONTEND}:latest
-                    docker push $ECR_REGISTRY/${DOCKER_REPO_BACKEND}:latest
-                    docker push $ECR_REGISTRY/${DOCKER_REPO_FRONTEND}:latest
-                '''
-            }
-        }
-        ===================================================== */
-
-        stage('Deploy to EC2') {
+        stage('Deploy to EC2 (AUTO)') {
             steps {
                 sshagent(['ec2-key']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'mkdir -p ${APP_DIR}'
-
-                        scp -o StrictHostKeyChecking=no docker-compose.prod.yml \
-                            ${EC2_USER}@${EC2_HOST}:${APP_DIR}/
-
-                        # Copy env file only if it exists
-                        if [ -f .env.production ]; then
-                          scp -o StrictHostKeyChecking=no .env.production \
-                              ${EC2_USER}@${EC2_HOST}:${APP_DIR}/
-                        fi
-
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                            cd ${APP_DIR}
-                            docker compose -f docker-compose.prod.yml down
-                            docker compose -f docker-compose.prod.yml up -d
-                            docker compose -f docker-compose.prod.yml ps
-                        '
+                      ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
+                        cd ${APP_DIR}
+                        docker compose pull
+                        docker compose up -d
+                        docker compose ps
+                      '
                     """
                 }
             }
@@ -137,12 +77,11 @@ pipeline {
             steps {
                 sshagent(['ec2-key']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                            sleep 30
-                            curl -f http://localhost:8080/actuator/health
-                            curl -f http://localhost
-                            echo "✅ Application is healthy"
-                        '
+                      ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
+                        sleep 30
+                        curl -f http://localhost:8080/actuator/health
+                        curl -f http://localhost
+                      '
                     """
                 }
             }
@@ -151,10 +90,10 @@ pipeline {
 
     post {
         success {
-            echo '🎉 Pipeline completed successfully!'
+            echo '🎉 Auto-deploy to EC2 completed successfully!'
         }
         failure {
-            echo '❌ Pipeline failed!'
+            echo '❌ Pipeline failed. Check logs.'
         }
         always {
             cleanWs()
