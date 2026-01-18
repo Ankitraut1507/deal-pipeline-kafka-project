@@ -123,7 +123,7 @@ pipeline {
                 emailext (
                     subject: "❌ Deployment Failed - Deal Pipeline",
                     body: "Pipeline failed at stage: ${currentBuild.currentResult}\nBuild: ${BUILD_NUMBER}",
-                    to: "your-email@example.com"
+                    to: "ankitraut002@gmail.com"
                 )
             }
         }
